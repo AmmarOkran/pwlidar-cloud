@@ -3,7 +3,7 @@ import os
 import json
 import importlib
 import logging.config
-from pywren_lidar_ibm_cloud.version import __version__
+from pwlidar_cloud.version import __version__
 
 logger = logging.getLogger(__name__)
 
