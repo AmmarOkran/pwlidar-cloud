@@ -1,6 +1,6 @@
 import os
 import sys
-from pywren_ibm_cloud.utils import version_str
+from pwlidar_cloud.utils import version_str
 
 RUNTIME_DEFAULT_35 = 'ibmfunctions/pywren:3.5'
 RUNTIME_DEFAULT_36 = 'ibmfunctions/action-python-v3.6'

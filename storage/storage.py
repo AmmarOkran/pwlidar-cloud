@@ -3,10 +3,10 @@ import json
 import pickle
 import logging
 import importlib
-from pywren_ibm_cloud.version import __version__
-from pywren_ibm_cloud.config import CACHE_DIR, RUNTIMES_PREFIX, JOBS_PREFIX
-from pywren_ibm_cloud.utils import is_pywren_function
-from pywren_ibm_cloud.storage.utils import create_status_key, create_output_key, \
+from pwlidar_cloud.version import __version__
+from pwlidar_cloud.config import CACHE_DIR, RUNTIMES_PREFIX, JOBS_PREFIX
+from pwlidar_cloud.utils import is_pywren_function
+from pwlidar_cloud.storage.utils import create_status_key, create_output_key, \
     status_key_suffix, CloudObject, StorageNoSuchKeyError
 
 

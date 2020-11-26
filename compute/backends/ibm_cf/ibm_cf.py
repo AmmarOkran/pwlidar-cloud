@@ -4,15 +4,15 @@ import base64
 import logging
 import zipfile
 import textwrap
-import pywren_ibm_cloud
+import pwlidar_cloud
 from . import config as ibmcf_config
 from datetime import datetime, timezone
 from ibm_botocore.credentials import DefaultTokenManager
-from pywren_ibm_cloud.utils import version_str
-from pywren_ibm_cloud.version import __version__
-from pywren_ibm_cloud.utils import is_pywren_function
-from pywren_ibm_cloud.config import CACHE_DIR, load_yaml_config, dump_yaml_config
-from pywren_ibm_cloud.libs.openwhisk.client import OpenWhiskClient
+from pwlidar_cloud.utils import version_str
+from pwlidar_cloud.version import __version__
+from pwlidar_cloud.utils import is_pywren_function
+from pwlidar_cloud.config import CACHE_DIR, load_yaml_config, dump_yaml_config
+from pwlidar_cloud.libs.openwhisk.client import OpenWhiskClient
 
 logger = logging.getLogger(__name__)
 

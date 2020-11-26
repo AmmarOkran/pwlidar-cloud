@@ -15,9 +15,9 @@
 #
 
 import logging
-from pywren_ibm_cloud.config import cloud_logging_config
-from pywren_ibm_cloud.runtime.function_handler import function_handler
-from pywren_ibm_cloud.runtime.function_handler import function_invoker
+from pwlidar_cloud.config import cloud_logging_config
+from pwlidar_cloud.runtime.function_handler import function_handler
+from pwlidar_cloud.runtime.function_handler import function_invoker
 
 cloud_logging_config(logging.INFO)
 logger = logging.getLogger('__main__')

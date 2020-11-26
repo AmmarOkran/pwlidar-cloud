@@ -2,7 +2,7 @@ import os
 import shutil
 import logging
 import tempfile
-from pywren_ibm_cloud.storage.utils import StorageNoSuchKeyError
+from pwlidar_cloud.storage.utils import StorageNoSuchKeyError
 
 
 TEMP = tempfile.gettempdir()
