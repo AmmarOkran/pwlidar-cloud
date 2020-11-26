@@ -1,7 +1,7 @@
 
 import tempfile
-from pywren_lidar_ibm_cloud.executor import FunctionExecutor
-from pywren_lidar_ibm_cloud.version import __version__
+from pwlidar_cloud.executor import FunctionExecutor
+from pwlidar_cloud.version import __version__
 
 name = "pywren_lidar_ibm_cloud"
 
