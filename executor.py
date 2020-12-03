@@ -10,6 +10,7 @@ from pwlidar_cloud.config import default_config, default_logging_config, EXECUTI
 from pywren_ibm_cloud.job import create_map_job
 logger = logging.getLogger(__name__)
 
+
 class FunctionExecutor:
 
     class State:
@@ -71,9 +72,9 @@ class FunctionExecutor:
             return '{}{}'.format(call_type, job_id)
 
 
-    def map(self, map_function, map_iterdata, extra_params=None, extra_env=None, runtime_memory=None,
-                chunk_size=None, chunk_n=None, timeout=EXECUTION_TIMEOUT, invoke_pool_threads=500,
-                include_modules=[], exclude_modules=[]):
+    def lidar_map(self, map_function, map_iterdata, extra_params=None, extra_env=None, runtime_memory=None,
+                  chunk_size=None, chunk_n=None, timeout=EXECUTION_TIMEOUT, invoke_pool_threads=500,
+                  include_modules=[], exclude_modules=[]):
             """
             :param map_function: the function to map over the data
             :param map_iterdata: An iterable of input data
