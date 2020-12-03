@@ -1,8 +1,8 @@
 import os
 import logging
-from pywren_ibm_cloud.version import __version__
-from pywren_ibm_cloud.utils import is_cf_cluster
-from pywren_ibm_cloud.libs.ibm.cloudfunctions_client import CloudFunctionsClient
+from pwlidar_cloud.version import __version__
+from pwlidar_cloud.utils import is_cf_cluster
+from pwlidar_cloud.libs.ibm.cloudfunctions_client import CloudFunctionsClient
 
 logger = logging.getLogger(__name__)
 

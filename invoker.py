@@ -29,7 +29,7 @@ from pwlidar_cloud.utils import version_str, is_pywren_function, is_unix_system
 from pwlidar_cloud.version import __version__
 from concurrent.futures import ThreadPoolExecutor
 from pwlidar_cloud.config import extract_storage_config, extract_compute_config
-from pwlidar_cloud.future import ResponseFuture
+from pywren_ibm_cloud.future import ResponseFuture
 
 
 logger = logging.getLogger(__name__)
