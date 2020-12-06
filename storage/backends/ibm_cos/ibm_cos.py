@@ -20,9 +20,9 @@ import ibm_boto3
 import ibm_botocore
 from datetime import datetime, timezone
 from ibm_botocore.credentials import DefaultTokenManager
-from pywren_ibm_cloud.storage.utils import StorageNoSuchKeyError
-from pywren_ibm_cloud.utils import sizeof_fmt, is_pywren_function
-from pywren_ibm_cloud.config import CACHE_DIR, load_yaml_config, dump_yaml_config
+from pwlidar_cloud.storage.utils import StorageNoSuchKeyError
+from pwlidar_cloud.utils import sizeof_fmt, is_pywren_function
+from pwlidar_cloud.config import CACHE_DIR, load_yaml_config, dump_yaml_config
 
 
 logging.getLogger('ibm_boto3').setLevel(logging.CRITICAL)
