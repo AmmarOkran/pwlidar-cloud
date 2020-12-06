@@ -7,7 +7,8 @@ from pwlidar_cloud.invoker import FunctionInvoker
 from pwlidar_cloud.storage import InternalStorage
 from pwlidar_cloud.utils import is_pywren_function, create_executor_id
 from pwlidar_cloud.config import default_config, default_logging_config, EXECUTION_TIMEOUT, extract_storage_config
-from pywren_ibm_cloud.job import create_map_job
+from pwlidar_cloud.job import create_map_job
+
 logger = logging.getLogger(__name__)
 
 
