@@ -3,7 +3,7 @@ import tempfile
 from pwlidar_cloud.executor import FunctionExecutor
 from pwlidar_cloud.version import __version__
 
-name = "pywren_lidar_ibm_cloud"
+name = "pwlidar_cloud"
 
 
 def ibm_cf_executor(config=None, runtime=None, runtime_memory=None, 
