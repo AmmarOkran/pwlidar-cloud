@@ -17,9 +17,7 @@ def ibm_cf_executor(config=None, runtime=None, runtime_memory=None,
     return FunctionExecutor(
         config=config, runtime=runtime, runtime_memory=runtime_memory,
         workers=workers, compute_backend=compute_backend,
-        compute_backend_region=region,
-        storage_backend=storage_backend,
+        compute_backend_region=region, storage_backend=storage_backend,
         storage_backend_region=storage_backend_region,
-        remote_invoker=remote_invoker,
-        log_level=log_level
+        remote_invoker=remote_invoker, log_level=log_level
     )
