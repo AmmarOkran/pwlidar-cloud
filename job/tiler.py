@@ -196,7 +196,7 @@ def _tile_objects_from_keys(map_func_args_list, keys_dict, x_chunks, y_chunks):
     if x_chunks and y_chunks:
         logger.info('Creating tiles from object keys...')
     else:
-        return  
+        raise Exception('You must provide X-axis and Y-axis values.')  
 
     partitions = []
     parts_per_object = []
