@@ -133,7 +133,7 @@ def extract_storage_config(config):
     storage_config['bucket'] = config['pywren']['storage_bucket']
 
     storage_config[sb] = config[sb]
-    storage_config[sb]['user_agent'] = 'pywren-ibm-cloud/{}'.format(__version__)
+    storage_config[sb]['user_agent'] = 'pwlidar-cloud/{}'.format(__version__)
     if 'storage_backend_region' in config['pywren']:
         storage_config[sb]['region'] = config['pywren']['storage_backend_region']
 
@@ -146,7 +146,7 @@ def extract_compute_config(config):
     compute_config['backend'] = cb
 
     compute_config[cb] = config[cb]
-    compute_config[cb]['user_agent'] = 'pywren-ibm-cloud/{}'.format(__version__)
+    compute_config[cb]['user_agent'] = 'pwlidar-cloud/{}'.format(__version__)
     if 'compute_backend_region' in config['pywren']:
         compute_config[cb]['region'] = config['pywren']['compute_backend_region']
 

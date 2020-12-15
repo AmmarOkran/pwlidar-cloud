@@ -124,8 +124,8 @@ def create_tiles(pywren_config, map_iterdata, chunk_size, chunk_number):
     elif obj_names:
         partitions, parts_per_object = _tile_objects_from_keys(map_iterdata, keys_dict, chunk_size, chunk_number)
 
-    elif urls:
-        partitions, parts_per_object = _tile_objects_from_urls(map_iterdata, chunk_size, chunk_number)
+    # elif urls:
+    #     partitions, parts_per_object = _tile_objects_from_urls(map_iterdata, chunk_size, chunk_number)
 
     else:
         raise ValueError('You did not provide any bucket or object key/url')
@@ -196,7 +196,7 @@ def _tile_objects_from_keys(map_func_args_list, keys_dict, x_chunks, y_chunks):
     if x_chunks and y_chunks:
         logger.info('Creating tiles from object keys...')
     else:
-        raise Exception('You must provide X-axis and Y-axis values.')  
+        raise ValueError('You did not provide X-axis and Y-axis values')
 
     partitions = []
     parts_per_object = []
