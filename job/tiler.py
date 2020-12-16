@@ -20,12 +20,13 @@ import copy
 import logging
 import requests
 import numpy as np
-from variance import variancex_y
+import struct
+from .variance import variancex_y
 from pwlidar_cloud import utils
 from multiprocessing.pool import ThreadPool
 from pwlidar_cloud.storage import Storage
 from pwlidar_cloud.storage.utils import CloudObject, CloudObjectUrl
-from pwlidar_cloud.job.header_parse import parse_header
+from pwlidar_cloud.job.headerParse import parse_header
 logger = logging.getLogger(__name__)
 
 CHUNK_SIZE_MIN = 0*1024  # 0MB
@@ -116,7 +117,13 @@ def create_tiles(pywren_config, map_iterdata, chunk_size, chunk_number):
             for obj in objects[bucket]:
                 keys_dict[bucket][obj['Key']] = {}
                 keys_dict[bucket][obj['Key']]['Size'] = obj['Size']
-                keys_dict[bucket][obj['Key']]['header'] = parse_header(bucket, obj['Key'])
+                extra_get_args = {'Range': "bytes=" + str(96) + "-" + str(100)}
+                header_offset = storage_handler.get_object(bucket, obj['Key'], extra_get_args = extra_get_args)
+                header_offset = struct.unpack('<L', header_offset[0:4])[0]
+                extra_get_args['Range'] = "bytes=" + str(0) + "-" + str(header_offset)
+                file_header = storage_handler.get_object(bucket, obj['Key'], extra_get_args = extra_get_args)
+                keys_dict[bucket][obj['Key']]['header'] = parse_header(file_header)
+                # keys_dict[bucket][obj['Key']]['header'] = parse_header(bucket, obj['Key'])
 
     if buckets or prefixes:
         partitions, parts_per_object = _tile_objects_from_buckets(map_iterdata, keys_dict, chunk_size, chunk_number)
