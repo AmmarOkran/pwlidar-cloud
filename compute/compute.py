@@ -17,7 +17,7 @@ class Compute:
         self.backend = self.config['backend']
 
         try:
-            module_location = 'pywren_lidar_ibm_cloud.compute.backends.{}'.format(self.backend)
+            module_location = 'pwlidar_cloud.compute.backends.{}'.format(self.backend)
             cb_module = importlib.import_module(module_location)
             ComputeBackend = getattr(cb_module, 'ComputeBackend')
             self.compute_handler = ComputeBackend(self.config[self.backend])

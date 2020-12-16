@@ -58,6 +58,8 @@ class FunctionExecutor:
         self.executor_id = create_executor_id()
         logger.debug('FunctionExecutor created with ID: {}'.format(self.executor_id))
 
+        self.data_cleaner = self.config['pywren'].get('data_cleaner', True)
+        
         storage_config = extract_storage_config(self.config)
         self.internal_storage = InternalStorage(storage_config)
         self.invoker = FunctionInvoker(self.config, self.executor_id, self.internal_storage)
