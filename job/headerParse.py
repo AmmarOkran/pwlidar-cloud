@@ -5,9 +5,9 @@ import os
 import struct
 
 cos_config = { 
-            'bucket_name' : 'csvfileconsevmb',
-            'api_key' : 'MQs8X8UcvCY2gRVGE6UIobWcurWdSV-HA7SeUWAdZl05',
-            'service_endpoint' : 'https://s3.us-east.cloud-object-storage.appdomain.cloud'
+            'bucket_name' : '',
+            'api_key' : '',
+            'service_endpoint' : ''
              }
 
 api_key = cos_config.get('api_key')
