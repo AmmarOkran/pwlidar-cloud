@@ -115,12 +115,12 @@ def default_config(config_data=None, config_overwrite={}):
 
     cb = config_data['pywren']['compute_backend']
     logger.debug("Loading Compute backend module: {}".format(cb))
-    cb_config = importlib.import_module('pywren_lidar_ibm_cloud.compute.backends.{}.config'.format(cb))
+    cb_config = importlib.import_module('pwlidar_cloud.compute.backends.{}.config'.format(cb))
     cb_config.load_config(config_data)
 
     sb = config_data['pywren']['storage_backend']
     logger.debug("Loading Storage backend module: {}".format(sb))
-    sb_config = importlib.import_module('pywren_lidar_ibm_cloud.storage.backends.{}.config'.format(sb))
+    sb_config = importlib.import_module('pwlidar_cloud.storage.backends.{}.config'.format(sb))
     sb_config.load_config(config_data)
 
     return config_data

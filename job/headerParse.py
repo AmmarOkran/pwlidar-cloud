@@ -1,25 +1,25 @@
-import ibm_boto3
-import ibm_botocore
-from ibm_botocore.client import Config
+# import ibm_boto3
+# import ibm_botocore
+# from ibm_botocore.client import Config
 import os
 import struct
 
-cos_config = { 
-            'bucket_name' : '',
-            'api_key' : '',
-            'service_endpoint' : ''
-             }
+# cos_config = { 
+#             'bucket_name' : '',
+#             'api_key' : '',
+#             'service_endpoint' : ''
+#              }
 
-api_key = cos_config.get('api_key')
-service_instance_id = cos_config.get('service_instance_id')
-auth_endpoint = cos_config.get('auth_endpoint')
-service_endpoint = cos_config.get('service_endpoint')
-cos_client = ibm_boto3.client('s3',
-                              ibm_api_key_id=api_key,
-                              ibm_service_instance_id=service_instance_id, 
-                              ibm_auth_endpoint=auth_endpoint,
-                              config=Config(signature_version='oauth'),
-                              endpoint_url=service_endpoint)
+# api_key = cos_config.get('api_key')
+# service_instance_id = cos_config.get('service_instance_id')
+# auth_endpoint = cos_config.get('auth_endpoint')
+# service_endpoint = cos_config.get('service_endpoint')
+# cos_client = ibm_boto3.client('s3',
+#                               ibm_api_key_id=api_key,
+#                               ibm_service_instance_id=service_instance_id, 
+#                               ibm_auth_endpoint=auth_endpoint,
+#                               config=Config(signature_version='oauth'),
+#                               endpoint_url=service_endpoint)
     
 def parse_header(data):
     # rng = {'Range': "bytes=" + str(0) + "-" + str(227)}
