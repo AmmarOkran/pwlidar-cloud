@@ -5,7 +5,7 @@ import logging
 import inspect
 from pwlidar_cloud import utils
 from pwlidar_cloud.wait import wait_storage
-from pwlidar_cloud.job.tiler import create_tiles
+from pwlidar_cloud.job.partitioner import create_partitions
 from pwlidar_cloud.storage.utils import create_func_key, create_agg_data_key
 from pwlidar_cloud.job.serialize import SerializeIndependent, create_module_data
 from pwlidar_cloud.config import EXECUTION_TIMEOUT, MAX_AGG_DATA_SIZE, JOBS_PREFIX
@@ -33,7 +33,7 @@ def create_map_job(config, internal_storage, executor_id, job_id, map_function, 
     if utils.is_object_processing_function(map_function):
         # If it is object processing function, create partitions according chunk_size or chunk_number
         logger.debug('ExecutorID {} | JobID {} - Calling map on partitions from object storage flow'.format(executor_id, job_id))
-        map_iterdata, parts_per_object = create_tiles(config, map_iterdata, obj_chunk_size, obj_chunk_number)
+        map_iterdata, parts_per_object = create_partitions(config, map_iterdata, obj_chunk_size, obj_chunk_number)
     # ########
 
 def create_reduce_job():
