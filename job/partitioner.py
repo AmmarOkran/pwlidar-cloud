@@ -132,7 +132,7 @@ def create_partitions(pywren_config, map_iterdata, chunk_size, chunk_number, par
         partitions, parts_per_object = _split_objects_from_keys(map_iterdata, keys_dict, chunk_size, chunk_number, partition_type)
 
     # elif urls:
-    #     partitions, parts_per_object = _tile_objects_from_urls(map_iterdata, chunk_size, chunk_number)
+        # partitions, parts_per_object = _split_objects_from_urls(map_iterdata, chunk_size, chunk_number)
 
     else:
         raise ValueError('You did not provide any bucket or object key/url')
