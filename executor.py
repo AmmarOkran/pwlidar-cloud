@@ -76,7 +76,7 @@ class FunctionExecutor:
 
 
     def lidar_map(self, map_function, map_iterdata, extra_params=None, extra_env=None, runtime_memory=None,
-                  chunk_size=None, chunk_n=None, timeout=EXECUTION_TIMEOUT, invoke_pool_threads=500,
+                  partition_type = None, chunk_size=None, chunk_n=None, timeout=EXECUTION_TIMEOUT, invoke_pool_threads=500,
                   include_modules=[], exclude_modules=[]):
             """
             :param map_function: the function to map over the data
@@ -101,16 +101,17 @@ class FunctionExecutor:
             runtime_meta = self.invoker.select_runtime(job_id, runtime_memory)
 
             job = create_map_job(self.config, self.internal_storage,
-                                self.executor_id, job_id,
-                                map_function=map_function,
-                                iterdata=map_iterdata,
-                                runtime_meta=runtime_meta,
-                                runtime_memory=runtime_memory,
-                                extra_params=extra_params,
-                                extra_env=extra_env,
-                                obj_chunk_size=chunk_size,
-                                obj_chunk_number=chunk_n,
-                                invoke_pool_threads=invoke_pool_threads,
-                                include_modules=include_modules,
-                                exclude_modules=exclude_modules,
-                                execution_timeout=timeout)
+                                 self.executor_id, job_id,
+                                 map_function=map_function,
+                                 iterdata=map_iterdata,
+                                 runtime_meta=runtime_meta,
+                                 runtime_memory=runtime_memory,
+                                 partition_type = partition_type,
+                                 extra_params=extra_params,
+                                 extra_env=extra_env,
+                                 obj_chunk_size=chunk_size,
+                                 obj_chunk_number=chunk_n,
+                                 invoke_pool_threads=invoke_pool_threads,
+                                 include_modules=include_modules,
+                                 exclude_modules=exclude_modules,
+                                 execution_timeout=timeout)

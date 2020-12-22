@@ -55,7 +55,7 @@ def scaled_z_dimension(las_file):
     return(z_dimension*scale + offset)
 
 
-def create_tiles(pywren_config, map_iterdata, chunk_size, chunk_number):
+def create_partitions(pywren_config, map_iterdata, chunk_size, chunk_number, partition_type):
     """
     Method that returns the function that will create the partitions of the objects in the Cloud
     """
@@ -126,10 +126,10 @@ def create_tiles(pywren_config, map_iterdata, chunk_size, chunk_number):
                 # keys_dict[bucket][obj['Key']]['header'] = parse_header(bucket, obj['Key'])
 
     if buckets or prefixes:
-        partitions, parts_per_object = _tile_objects_from_buckets(map_iterdata, keys_dict, chunk_size, chunk_number)
+        partitions, parts_per_object = _split_objects_from_buckets(map_iterdata, keys_dict, chunk_size, chunk_number, partition_type)
 
     elif obj_names:
-        partitions, parts_per_object = _tile_objects_from_keys(map_iterdata, keys_dict, chunk_size, chunk_number)
+        partitions, parts_per_object = _split_objects_from_keys(map_iterdata, keys_dict, chunk_size, chunk_number, partition_type)
 
     # elif urls:
     #     partitions, parts_per_object = _tile_objects_from_urls(map_iterdata, chunk_size, chunk_number)
@@ -140,7 +140,7 @@ def create_tiles(pywren_config, map_iterdata, chunk_size, chunk_number):
     return partitions, parts_per_object
 
 
-def _tile_objects_from_buckets(map_func_args_list, keys_dict, chunk_size, chunk_number):
+def _split_objects_from_buckets(map_func_args_list, keys_dict, chunk_size, chunk_number, partition_type):
     """
     Create partitions from bucket/s
     """
@@ -195,7 +195,7 @@ def _tile_objects_from_buckets(map_func_args_list, keys_dict, chunk_size, chunk_
     return partitions, parts_per_object
 
 
-def _tile_objects_from_keys(map_func_args_list, keys_dict, x_chunks, y_chunks):
+def _split_objects_from_keys(map_func_args_list, keys_dict, x_chunks, y_chunks, partition_type):
     """
     Create partitions from a list of objects keys
     """

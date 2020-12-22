@@ -63,11 +63,11 @@ def parse_header(data):
     file_header['Xoffset'] = struct.unpack('<d', data[155:163])[0]
     file_header['Yoffset'] = struct.unpack('<d', data[163:171])[0]
     file_header['Zoffset'] = struct.unpack('<d', data[171:179])[0]
-    file_header['MaxX'] = struct.unpack('<d', data[179:187])[0]
-    file_header['MinX'] = struct.unpack('<d', data[187:195])[0]
-    file_header['MaxY'] = struct.unpack('<d', data[195:203])[0]
-    file_header['MinY'] = struct.unpack('<d', data[203:211])[0]
-    file_header['MaxZ'] = struct.unpack('<d', data[211:219])[0]
-    file_header['MinZ'] = struct.unpack('<d', data[219:227])[0]
+    file_header['MaxX'] = round(struct.unpack('<d', data[179:187])[0], 2)
+    file_header['MinX'] = round(struct.unpack('<d', data[187:195])[0], 2)
+    file_header['MaxY'] = round(struct.unpack('<d', data[195:203])[0], 2)
+    file_header['MinY'] = round(struct.unpack('<d', data[203:211])[0], 2)
+    file_header['MaxZ'] = round(struct.unpack('<d', data[211:219])[0], 2)
+    file_header['MinZ'] = round(struct.unpack('<d', data[219:227])[0], 2)
     
     return file_header

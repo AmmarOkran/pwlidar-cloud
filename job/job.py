@@ -13,7 +13,7 @@ from pwlidar_cloud.config import EXECUTION_TIMEOUT, MAX_AGG_DATA_SIZE, JOBS_PREF
 logger = logging.getLogger(__name__)
 
 def create_map_job(config, internal_storage, executor_id, job_id, map_function, iterdata, runtime_meta,
-                   runtime_memory=None, extra_params=None, extra_env=None, obj_chunk_size=None,
+                   runtime_memory=None, extra_params=None, extra_env=None, partition_type=None, obj_chunk_size=None,
                    obj_chunk_number=None, invoke_pool_threads=128, include_modules=[], exclude_modules=[],
                    execution_timeout=EXECUTION_TIMEOUT):
     """
@@ -33,7 +33,7 @@ def create_map_job(config, internal_storage, executor_id, job_id, map_function, 
     if utils.is_object_processing_function(map_function):
         # If it is object processing function, create partitions according chunk_size or chunk_number
         logger.debug('ExecutorID {} | JobID {} - Calling map on partitions from object storage flow'.format(executor_id, job_id))
-        map_iterdata, parts_per_object = create_partitions(config, map_iterdata, obj_chunk_size, obj_chunk_number)
+        map_iterdata, parts_per_object = create_partitions(config, map_iterdata, obj_chunk_size, obj_chunk_number, partition_type)
     # ########
 
 def create_reduce_job():
