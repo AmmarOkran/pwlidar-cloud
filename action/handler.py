@@ -24,12 +24,12 @@ import logging
 import subprocess
 import multiprocessing
 from distutils.util import strtobool
-from pywren_ibm_cloud import version
-from pywren_ibm_cloud import wrenconfig
-from pywren_ibm_cloud.storage import InternalStorage
-from pywren_ibm_cloud.utils import sizeof_fmt
-from pywren_ibm_cloud.action.jobrunner import jobrunner
-from pywren_ibm_cloud.logging_config import ibm_cf_logging_config
+from pwlidar_cloud import version
+from pwlidar_cloud import wrenconfig
+from pwlidar_cloud.storage import InternalStorage
+from pwlidar_cloud.utils import sizeof_fmt
+from pwlidar_cloud.action.jobrunner import jobrunner
+from pwlidar_cloud.logging_config import ibm_cf_logging_config
 
 logging.getLogger('pika').setLevel(logging.CRITICAL)
 logger = logging.getLogger('handler')
