@@ -123,3 +123,10 @@ class FunctionExecutor:
                                  include_modules=include_modules,
                                  exclude_modules=exclude_modules,
                                  execution_timeout=timeout)
+
+            futures = self.invoker.run(job)
+            self.futures.extend(futures)
+            self._state = FunctionExecutor.State.Running
+            if len(futures) == 1:
+                return futures[0]
+            return futures

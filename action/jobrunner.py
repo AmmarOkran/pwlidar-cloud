@@ -25,15 +25,15 @@ import inspect
 import numpy as np
 from multiprocessing import Process
 from distutils.util import strtobool
-from pywren_ibm_cloud.storage import InternalStorage
-from pywren_ibm_cloud.future import ResponseFuture
-from pywren_ibm_cloud.libs.tblib import pickling_support
-from pywren_ibm_cloud.utils import sizeof_fmt, b64str_to_bytes
-from pywren_ibm_cloud.wrenconfig import extract_storage_config
-from pywren_ibm_cloud.utils import get_current_memory_usage
-from pywren_ibm_cloud.storage.backends.ibm_cos import IbmCosStorageBackend
-from pywren_ibm_cloud.storage.backends.swift import SwiftStorageBackend
-from pywren_ibm_cloud.logging_config import ibm_cf_logging_config
+from pwlidar_cloud.storage import InternalStorage
+from pwlidar_cloud.future import ResponseFuture
+from pwlidar_cloud.libs.tblib import pickling_support
+from pwlidar_cloud.utils import sizeof_fmt, b64str_to_bytes
+from pwlidar_cloud.wrenconfig import extract_storage_config
+from pwlidar_cloud.utils import get_current_memory_usage
+from pwlidar_cloud.storage.backends.ibm_cos import IbmCosStorageBackend
+from pwlidar_cloud.storage.backends.swift import SwiftStorageBackend
+from pwlidar_cloud.logging_config import ibm_cf_logging_config
 
 pickling_support.install()
 logger = logging.getLogger('jobrunner')
