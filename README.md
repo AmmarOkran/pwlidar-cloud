@@ -14,7 +14,7 @@ Library for processing LiDAR data in the ibm cloud -->
 
 
 ## How to use Pwlidar_cloud on IBM Cloud
-The primary object in PyWren is the executor. First of all we have to import Pwlidar_cloud, and call on of the available methods to get a ready-to-use executor. The available executors up_to_now are: `ibm_cf_executo()`. For example:
+The primary object in PyWren is the executor. First of all we have to import Pwlidar_cloud, and call on of the available methods to get a ready-to-use executor. The available executor up_to_now is: `ibm_cf_executo()`. For example:
 
 ```python
 import Pwlidar_cloud as pywren
