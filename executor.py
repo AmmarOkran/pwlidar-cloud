@@ -83,6 +83,45 @@ class FunctionExecutor:
             return '{}{}'.format(call_type, job_id)
 
 
+    
+    def lidar_call_async(self, func, data, extra_env=None, runtime_memory=None,
+                         timeout=EXECUTION_TIMEOUT, include_modules=[], exclude_modules=[]):
+        """
+        For running one function execution asynchronously
+
+        :param func: the function to map over the data
+        :param data: input data
+        :param extra_data: Additional data to pass to action. Default None.
+        :param extra_env: Additional environment variables for action environment. Default None.
+        :param runtime_memory: Memory to use to run the function. Default None (loaded from config).
+        :param timeout: Time that the functions have to complete their execution before raising a timeout.
+        :param include_modules: Explicitly pickle these dependencies.
+        :param exclude_modules: Explicitly keep these modules from pickled dependencies.
+
+        :return: future object.
+        """
+        job_id = self._create_job_id('A')
+
+        runtime_meta = self.invoker.select_runtime(job_id, runtime_memory)
+
+        job = create_map_job(self.config, self.internal_storage,
+                             self.executor_id, job_id,
+                             map_function=func,
+                             iterdata=[data],
+                             runtime_meta=runtime_meta,
+                             runtime_memory=runtime_memory,
+                             extra_env=extra_env,
+                             include_modules=include_modules,
+                             exclude_modules=exclude_modules,
+                             execution_timeout=timeout)
+
+        futures = self.invoker.run(job)
+        self.futures.extend(futures)
+        self._state = FunctionExecutor.State.Running
+
+        return futures[0]
+
+
     def lidar_map(self, map_function, map_iterdata, extra_params=None, extra_env=None, runtime_memory=None,
                   partition_type = None, chunk_size=None, chunk_n=None, timeout=EXECUTION_TIMEOUT, invoke_pool_threads=500,
                   include_modules=[], exclude_modules=[]):

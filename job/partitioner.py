@@ -123,13 +123,14 @@ def create_partitions(pywren_config, map_iterdata, chunk_size, chunk_number, par
                 extra_get_args['Range'] = "bytes=" + str(0) + "-" + str(header_offset)
                 file_header = storage_handler.get_object(bucket, obj['Key'], extra_get_args = extra_get_args)
                 keys_dict[bucket][obj['Key']]['header'] = parse_header(file_header)
+                file_meta = keys_dict[bucket][obj['Key']]['header']
                 # keys_dict[bucket][obj['Key']]['header'] = parse_header(bucket, obj['Key'])
 
     if buckets or prefixes:
         partitions, parts_per_object = _split_objects_from_buckets(map_iterdata, keys_dict, chunk_size, chunk_number, partition_type)
 
     elif obj_names:
-        partitions, parts_per_object = _split_objects_from_keys(map_iterdata, keys_dict, chunk_size, chunk_number, partition_type)
+        partitions, parts_per_object = _split_objects_from_keys(map_iterdata, keys_dict, chunk_size, chunk_number, partition_type, file_meta)
 
     # elif urls:
         # partitions, parts_per_object = _split_objects_from_urls(map_iterdata, chunk_size, chunk_number)
@@ -140,7 +141,7 @@ def create_partitions(pywren_config, map_iterdata, chunk_size, chunk_number, par
     return partitions, parts_per_object
 
 
-def _split_objects_from_buckets(map_func_args_list, keys_dict, chunk_size, chunk_number, partition_type):
+def _split_objects_from_buckets(map_func_args_list, keys_dict, chunk_size, chunk_number, partition_type, file_meta):
     """
     Create partitions from bucket/s
     """
@@ -195,7 +196,7 @@ def _split_objects_from_buckets(map_func_args_list, keys_dict, chunk_size, chunk
     return partitions, parts_per_object
 
 
-def _split_objects_from_keys(map_func_args_list, keys_dict, x_chunks, y_chunks, partition_type):
+def _split_objects_from_keys(map_func_args_list, keys_dict, x_chunks, y_chunks, partition_type, file_meta):
     """
     Create partitions from a list of objects keys
     """
@@ -203,7 +204,9 @@ def _split_objects_from_keys(map_func_args_list, keys_dict, x_chunks, y_chunks, 
     if x_chunks and y_chunks:
         logger.info('Creating tiles from object keys...')
     else:
-        raise ValueError('You did not provide X-axis and Y-axis values')
+        x_chunks = 1 
+        y_chunks = 1
+        # raise ValueError('You did not provide X-axis and Y-axis values')
 
     partitions = []
     parts_per_object = []
@@ -218,16 +221,16 @@ def _split_objects_from_keys(map_func_args_list, keys_dict, x_chunks, y_chunks, 
             raise Exception('Object key "{}" does not exist in "{}" bucket'.format(key, bucket))
     
     
-        # Scale X, Y and Z
-        scaled_x = scaled_x_dimension(inFile)
-        scaled_y = scaled_y_dimension(inFile)
-        scaled_z = scaled_z_dimension(inFile)
+        # # Scale X, Y and Z
+        # scaled_x = scaled_x_dimension(inFile)
+        # scaled_y = scaled_y_dimension(inFile)
+        # scaled_z = scaled_z_dimension(inFile)
     
         # Define Max and Min
-        max_X = scaled_x.max()
-        max_Y = scaled_y.max()
-        min_X = scaled_x.min()
-        min_Y = scaled_y.min()
+        max_X = file_meta['MaxX'] # scaled_x.max()
+        max_Y = file_meta['MaxY'] # scaled_y.max()
+        min_X = file_meta['MinX'] # scaled_x.min()
+        min_Y = file_meta['MinY'] # scaled_y.min()
         print("Max X is {}, and Max Y is {}".format(max_X, max_Y))
         print("Min X is {}, and Min Y is {}".format(min_X, min_Y))
     
@@ -236,7 +239,7 @@ def _split_objects_from_keys(map_func_args_list, keys_dict, x_chunks, y_chunks, 
         # print('deltax = ', deltax,', deltay = ', deltay)
 
         # Delta for both (x and y)
-        delta = variancex_y(inFile)
+        delta = 0.2 # variancex_y(inFile)
         print('delta = {}'.format(delta))
     
     
@@ -328,6 +331,21 @@ def _split_objects_from_keys(map_func_args_list, keys_dict, x_chunks, y_chunks, 
                 partition['obj'].part = total_partitions
                 partitions.append(partition)
                 total_partitions = total_partitions + 1  
+            
+            else:
+                partition = entry.copy()
+                partition['obj'] = CloudObject(sb, bucket, key)
+                partition['obj'].limit_X_values = None
+                partition['obj'].addupp_X_val = None
+                partition['obj'].addlow_X_val = None
+                partition['obj'].limit_Y_values = None
+                partition['obj'].addupp_Y_val = None
+                partition['obj'].addlow_Y_val = None
+                partition['obj'].pointsX_offset = None
+                partition['obj'].pointsY_offset = None
+                partition['obj'].part = total_partitions
+                partitions.append(partition)
+                total_partitions = total_partitions + 1
             
             print("****************************************************************************")
         parts_per_object.append(total_partitions)
