@@ -51,7 +51,7 @@ class InternalStorage:
         self.tmp_obj_count = 0
 
         try:
-            module_location = 'pywren_ibm_cloud.storage.backends.{}'.format(self.backend)
+            module_location = 'pwlidar_cloud.storage.backends.{}'.format(self.backend)
             sb_module = importlib.import_module(module_location)
             StorageBackend = getattr(sb_module, 'StorageBackend')
             self.storage_handler = StorageBackend(self.config[self.backend])
