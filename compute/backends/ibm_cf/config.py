@@ -11,7 +11,7 @@ RUNTIME_MEMORY_DEFAULT = 256  # Default memory: 256 MB
 MAX_CONCURRENT_WORKERS = 1200
 
 
-FH_ZIP_LOCATION = os.path.join(os.getcwd(), 'pywren_lidar_ibmcf.zip')
+FH_ZIP_LOCATION = os.path.join(os.getcwd(), 'pwlidar_cloud_ibmcf.zip')
 
 
 def load_config(config_data):
