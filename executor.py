@@ -1,4 +1,3 @@
-
 import os
 import sys
 import copy
@@ -99,7 +98,6 @@ class FunctionExecutor:
             return '{}{}'.format(call_type, job_id)
 
 
-    
     def lidar_call_async(self, func, data, extra_env=None, runtime_memory=None,
                          timeout=EXECUTION_TIMEOUT, include_modules=[], exclude_modules=[]):
         """
@@ -139,7 +137,7 @@ class FunctionExecutor:
 
 
     def lidar_map(self, map_function, map_iterdata, extra_params=None, extra_env=None, runtime_memory=None,
-                  partition_type = None, chunk_size=None, chunk_n=None, timeout=EXECUTION_TIMEOUT, invoke_pool_threads=500,
+                  partition_type = None, rows=1, cols=1, timeout=EXECUTION_TIMEOUT, invoke_pool_threads=500,
                   include_modules=[], exclude_modules=[]):
             """
             :param map_function: the function to map over the data
@@ -172,8 +170,8 @@ class FunctionExecutor:
                                  partition_type = partition_type,
                                  extra_params=extra_params,
                                  extra_env=extra_env,
-                                 obj_chunk_size=chunk_size,
-                                 obj_chunk_number=chunk_n,
+                                 obj_rows=rows,
+                                 obj_cols=cols,
                                  invoke_pool_threads=invoke_pool_threads,
                                  include_modules=include_modules,
                                  exclude_modules=exclude_modules,

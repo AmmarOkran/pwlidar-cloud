@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-import laspy
+# import laspy
 import math
 import copy
 import logging
@@ -55,11 +55,11 @@ def scaled_z_dimension(las_file):
     return(z_dimension*scale + offset)
 
 
-def create_partitions(pywren_config, map_iterdata, chunk_size, chunk_number, partition_type):
+def create_partitions(pywren_config, map_iterdata, rows, cols, partition_type):
     """
     Method that returns the function that will create the partitions of the objects in the Cloud
     """
-    logger.debug('Starting tiler')
+    logger.debug('Starting partitioner')
 
     parts_per_object = None
 
@@ -126,10 +126,10 @@ def create_partitions(pywren_config, map_iterdata, chunk_size, chunk_number, par
                 # keys_dict[bucket][obj['Key']]['header'] = parse_header(bucket, obj['Key'])
 
     if buckets or prefixes:
-        partitions, parts_per_object = _split_objects_from_buckets(map_iterdata, keys_dict, chunk_size, chunk_number, partition_type)
+        partitions, parts_per_object = _split_objects_from_buckets(map_iterdata, keys_dict, rows, cols, partition_type)
 
     elif obj_names:
-        partitions, parts_per_object = _split_objects_from_keys(map_iterdata, keys_dict, chunk_size, chunk_number, partition_type)
+        partitions, parts_per_object = _split_objects_from_keys(map_iterdata, keys_dict, rows, cols, partition_type)
 
     # elif urls:
         # partitions, parts_per_object = _split_objects_from_urls(map_iterdata, chunk_size, chunk_number)
@@ -195,17 +195,22 @@ def _split_objects_from_buckets(map_func_args_list, keys_dict, chunk_size, chunk
     return partitions, parts_per_object
 
 
-def _split_objects_from_keys(map_func_args_list, keys_dict, x_chunks, y_chunks, partition_type):
+def _split_objects_from_keys(map_func_args_list, keys_dict, rows, cols, partition_type):
     """
     Create partitions from a list of objects keys
     """
 
-    if x_chunks and y_chunks:
-        logger.info('Creating tiles from object keys...')
+    if rows and cols:
+        num_tiles = rows * cols
+        if num_tiles > 1:
+            logger.info('Creating tiles from object keys...')
+        if num_tiles > 32767:
+            raise Exception("There are too many output tiles. Try choosing a larger grid width.")
     else:
-        x_chunks = 1 
-        y_chunks = 1
-        # raise ValueError('You did not provide X-axis and Y-axis values')
+        num_tiles = None
+        # elif num_tiles == 0:
+        #     raise Exception(""" rows * cols must not equal zero. Try choosing another values so that
+        #                         the result not equal zero.""")
 
     partitions = []
     parts_per_object = []
@@ -229,101 +234,151 @@ def _split_objects_from_keys(map_func_args_list, keys_dict, x_chunks, y_chunks, 
         print("Max X is {}, and Max Y is {}".format(max_X, max_Y))
         print("Min X is {}, and Min Y is {}".format(min_X, min_Y))
     
-      
-
-        # Delta for both (x and y)
-        delta = 0.2 # variancex_y(inFile)
-        print('delta = {}'.format(delta))
-    
-    
-        # Identify tiles
-        pointX_offset = round(((max_X - min_X) / x_chunks), 2)   # math.ceil()
-        pointY_offset = round(((max_Y - min_Y) / y_chunks), 2) # math.ceil()
-        # print(pointX_num, pointY_num)
-    
         # Tiling operation
         print("start tiling ...")
         mn_X = min_X
         mn_Y = min_Y
         total_partitions = 0
         print("--------------------------------------------")
+
+        # Delta for both (x and y)
+        delta = 0.2 # variancex_y(inFile)
+        print('delta = {}'.format(delta))
     
-        for y in range(y_chunks):
-            tilY_st = mn_Y + (pointY_offset * y)
+        if num_tiles is not None:
+            if num_tiles> 1:
+                # Identify tiles
+                pointX_offset = round(((max_X - min_X) / rows), 2)   # math.ceil()
+                pointY_offset = round(((max_Y - min_Y) / cols), 2) # math.ceil()
+                # print(pointX_num, pointY_num)
             
-            for x in range(x_chunks):
-                partition = {}
-                tilX_st = mn_X + (pointX_offset * x)
-                print('tilX_st', tilX_st)
-                print('tilY_st', tilY_st)
+                for y in range(cols):
+                    tilY_st = mn_Y + (pointY_offset * y)
+                    
+                    for x in range(rows):
+                        partition = {}
+                        tilX_st = mn_X + (pointX_offset * x)
+                        print('tilX_st', tilX_st)
+                        print('tilY_st', tilY_st)
+                    
+                        if (tilX_st == mn_X and tilY_st == mn_Y):
+                            # The limits of the X-axis values
+                            limX_vals = (tilX_st, round((tilX_st + pointX_offset), 2))
+                            addupp_X_inf = (round((tilX_st + pointX_offset), 2), round((tilX_st + pointX_offset + delta), 2))
+                            addlow_X_inf = (0, 0)
+                            print("limitation of X values for tile {}, {} is {}".format(x, y, limX_vals))
+
+                            # The limits of the Y-axis values                
+                            limY_vals = (tilY_st, round((tilY_st + pointY_offset), 2))
+                            addupp_Y_inf = (round((tilY_st + pointY_offset), 2), round((tilY_st + pointY_offset + delta), 2))
+                            addlow_Y_inf = (0, 0)
+                            min_X += pointX_offset
+                            print("limitation of Y values for tile {}, {} is {}".format(x, y, limY_vals))
+
+                        elif (tilX_st != mn_X and tilY_st == mn_Y):
+                            # The limits of the X-axis values
+                            limX_vals = (tilX_st, round((tilX_st + pointX_offset), 2)) if not(round((tilX_st + pointX_offset), 2) > max_X) and x < (rows - 1) else (tilX_st, max_X)
+                            addupp_X_inf = (round((tilX_st + pointX_offset), 2), round((tilX_st + pointX_offset + delta), 2)) if not(round((tilX_st + pointX_offset), 2) > max_X) and x < (rows - 1) else (0, 0)
+                            addlow_X_inf = (tilX_st, round((tilX_st - delta), 2))
+                            print("limitation of X values for tile {}, {} is {}".format(x, y, limX_vals))
+
+                            # The limits of the Y-axis values
+                            limY_vals = (tilY_st, round((tilY_st + pointY_offset), 2))
+                            addupp_Y_inf = (round((tilY_st + pointY_offset), 2), round((tilY_st + pointY_offset + delta), 2))
+                            addlow_Y_inf = 0
+                            print("limitation of Y values for tile {}, {} is {}".format(x, y, limY_vals))
+                    
+                        elif (tilX_st == mn_X and tilY_st != mn_Y):
+                            # The limits of the X-axis values
+                            limX_vals = (tilX_st, round((tilX_st + pointX_offset), 2)) if not(round((tilX_st + pointX_offset), 2) > max_X) and x < (rows - 1) else (tilX_st, max_X)
+                            addupp_X_inf = (round((tilX_st + pointX_offset), 2), round((tilX_st + pointX_offset + delta), 2))
+                            addlow_X_inf = (0, 0)
+                            print("limitation of X values for tile {}, {} is {}".format(x, y, limX_vals))
+
+                            # The limits of the Y-axis values
+                            limY_vals = (tilY_st, round((tilY_st + pointY_offset), 2)) if not(round((tilY_st + pointY_offset), 2) > max_Y) and y < (cols - 1) else (tilY_st, max_Y)
+                            addupp_Y_inf = (round((tilY_st + pointY_offset), 2), round((tilY_st + pointY_offset + delta), 2)) if not(round((tilY_st + pointY_offset), 2) > max_Y) and y < (cols - 1) else (0, 0)
+                            addlow_Y_inf = (tilY_st, round((tilY_st - delta), 2))
+                            print("limitation of Y values for tile {}, {} is {}".format(x, y, limY_vals))
+                    
+                        elif (tilX_st != mn_X and tilY_st != mn_Y):
+                            # The limits of the X-axis values
+                            limX_vals = (tilX_st, round((tilX_st + pointX_offset), 2)) if not(round((tilX_st + pointX_offset), 2) > max_X) and x < (rows - 1) else (tilX_st, max_X)
+                            addupp_X_inf = (round((tilX_st + pointX_offset), 2), round((tilX_st + pointX_offset + delta), 2)) if not(round((tilX_st + pointX_offset), 2) > max_X) and x < (rows - 1) else (0, 0)
+                            addlow_X_inf = (tilX_st, round((tilX_st - delta), 2))
+                            print("limitation of X values for tile {}, {} is {}".format(x, y, limX_vals))
+
+                            # The limits of the Y-axis values
+                            limY_vals = (tilY_st, round((tilY_st + pointY_offset), 2)) if not(round((tilY_st + pointY_offset), 2) > max_Y) and y < (cols - 1)else (tilY_st, max_Y)
+                            addupp_Y_inf = (round((tilY_st + pointY_offset), 2), round((tilY_st + pointY_offset + delta), 2)) if not(round((tilY_st + pointY_offset), 2) > max_Y) and y < (cols - 1) else (0, 0)
+                            addlow_Y_inf = (tilY_st, round((tilY_st - delta), 2))
+                            print("limitation of Y values for tile {}, {} is {}".format(x, y, limY_vals))
+                        print("--------------------------------------------")
+                size = 0
+                while size < obj_size:
+                    partition = entry.copy()
+                    partition['obj'] = CloudObject(sb, bucket, key)
+                    partition['obj'].limit_X_values = limX_vals
+                    partition['obj'].addupp_X_val = addupp_X_inf
+                    partition['obj'].addlow_X_val = addlow_X_inf
+                    partition['obj'].limit_Y_values = limY_vals
+                    partition['obj'].addupp_Y_val = addupp_Y_inf
+                    partition['obj'].addlow_Y_val = addlow_Y_inf
+                    partition['obj'].pointsX_offset = pointX_offset
+                    partition['obj'].pointsY_offset = pointY_offset
+                    partition['obj'].part = total_partitions
+                    partitions.append(partition)
+                    total_partitions = total_partitions + 1  
+
+                # brange = (size, size+chunk_size+CHUNK_THRESHOLD)
+                # size += chunk_size
+                # partition = entry.copy()
+                # partition['obj'] = CloudObject(sb, bucket, key)
+                # partition['obj'].data_byte_range = brange
+                # partition['obj'].chunk_size = chunk_size
+                # partition['obj'].part = total_partitions
+                # partitions.append(partition)
+                # total_partitions = total_partitions + 1
+        else:
             
-                if (tilX_st == mn_X and tilY_st == mn_Y):
-                    # The limits of the X-axis values
-                    limX_vals = (tilX_st, round((tilX_st + pointX_offset), 2))
-                    addupp_X_inf = (round((tilX_st + pointX_offset), 2), round((tilX_st + pointX_offset + delta), 2))
-                    addlow_X_inf = (0, 0)
-                    print("limitation of X values for tile {}, {} is {}".format(x, y, limX_vals))
+            partition = entry.copy()
+            partition['obj'] = CloudObject(sb, bucket, key)
+            partition['obj'].limit_X_values = None
+            partition['obj'].addupp_X_val = None
+            partition['obj'].addlow_X_val = None
+            partition['obj'].limit_Y_values = None
+            partition['obj'].addupp_Y_val = None
+            partition['obj'].addlow_Y_val = None
+            partition['obj'].data_byte_range = None
+            partition['obj'].pointsX_offset = round((max_X - min_X), 2)
+            partition['obj'].pointsY_offset = round((max_Y - min_Y), 2)
+            partition['obj'].part = total_partitions
+            partitions.append(partition)
+            total_partitions = total_partitions + 1  
 
-                    # The limits of the Y-axis values                
-                    limY_vals = (tilY_st, round((tilY_st + pointY_offset), 2))
-                    addupp_Y_inf = (round((tilY_st + pointY_offset), 2), round((tilY_st + pointY_offset + delta), 2))
-                    addlow_Y_inf = (0, 0)
-                    min_X += pointX_offset
-                    print("limitation of Y values for tile {}, {} is {}".format(x, y, limY_vals))
 
-                elif (tilX_st != mn_X and tilY_st == mn_Y):
-                    # The limits of the X-axis values
-                    limX_vals = (tilX_st, round((tilX_st + pointX_offset), 2)) if not(round((tilX_st + pointX_offset), 2) > max_X) and x < (x_chunks - 1) else (tilX_st, max_X)
-                    addupp_X_inf = (round((tilX_st + pointX_offset), 2), round((tilX_st + pointX_offset + delta), 2)) if not(round((tilX_st + pointX_offset), 2) > max_X) and x < (x_chunks - 1) else (0, 0)
-                    addlow_X_inf = (tilX_st, round((tilX_st - delta), 2))
-                    print("limitation of X values for tile {}, {} is {}".format(x, y, limX_vals))
-
-                    # The limits of the Y-axis values
-                    limY_vals = (tilY_st, round((tilY_st + pointY_offset), 2))
-                    addupp_Y_inf = (round((tilY_st + pointY_offset), 2), round((tilY_st + pointY_offset + delta), 2))
-                    addlow_Y_inf = 0
-                    print("limitation of Y values for tile {}, {} is {}".format(x, y, limY_vals))
-            
-                elif (tilX_st == mn_X and tilY_st != mn_Y):
-                    # The limits of the X-axis values
-                    limX_vals = (tilX_st, round((tilX_st + pointX_offset), 2)) if not(round((tilX_st + pointX_offset), 2) > max_X) and x < (x_chunks - 1) else (tilX_st, max_X)
-                    addupp_X_inf = (round((tilX_st + pointX_offset), 2), round((tilX_st + pointX_offset + delta), 2))
-                    addlow_X_inf = (0, 0)
-                    print("limitation of X values for tile {}, {} is {}".format(x, y, limX_vals))
-
-                    # The limits of the Y-axis values
-                    limY_vals = (tilY_st, round((tilY_st + pointY_offset), 2)) if not(round((tilY_st + pointY_offset), 2) > max_Y) and y < (y_chunks - 1) else (tilY_st, max_Y)
-                    addupp_Y_inf = (round((tilY_st + pointY_offset), 2), round((tilY_st + pointY_offset + delta), 2)) if not(round((tilY_st + pointY_offset), 2) > max_Y) and y < (y_chunks - 1) else (0, 0)
-                    addlow_Y_inf = (tilY_st, round((tilY_st - delta), 2))
-                    print("limitation of Y values for tile {}, {} is {}".format(x, y, limY_vals))
-            
-                elif (tilX_st != mn_X and tilY_st != mn_Y):
-                    # The limits of the X-axis values
-                    limX_vals = (tilX_st, round((tilX_st + pointX_offset), 2)) if not(round((tilX_st + pointX_offset), 2) > max_X) and x < (x_chunks - 1) else (tilX_st, max_X)
-                    addupp_X_inf = (round((tilX_st + pointX_offset), 2), round((tilX_st + pointX_offset + delta), 2)) if not(round((tilX_st + pointX_offset), 2) > max_X) and x < (x_chunks - 1) else (0, 0)
-                    addlow_X_inf = (tilX_st, round((tilX_st - delta), 2))
-                    print("limitation of X values for tile {}, {} is {}".format(x, y, limX_vals))
-
-                    # The limits of the Y-axis values
-                    limY_vals = (tilY_st, round((tilY_st + pointY_offset), 2)) if not(round((tilY_st + pointY_offset), 2) > max_Y) and y < (y_chunks - 1)else (tilY_st, max_Y)
-                    addupp_Y_inf = (round((tilY_st + pointY_offset), 2), round((tilY_st + pointY_offset + delta), 2)) if not(round((tilY_st + pointY_offset), 2) > max_Y) and y < (y_chunks - 1) else (0, 0)
-                    addlow_Y_inf = (tilY_st, round((tilY_st - delta), 2))
-                    print("limitation of Y values for tile {}, {} is {}".format(x, y, limY_vals))
-                print("--------------------------------------------")
-                
-                partition = entry.copy()
-                partition['obj'] = CloudObject(sb, bucket, key)
-                partition['obj'].limit_X_values = limX_vals
-                partition['obj'].addupp_X_val = addupp_X_inf
-                partition['obj'].addlow_X_val = addlow_X_inf
-                partition['obj'].limit_Y_values = limY_vals
-                partition['obj'].addupp_Y_val = addupp_Y_inf
-                partition['obj'].addlow_Y_val = addlow_Y_inf
-                partition['obj'].pointsX_offset = pointX_offset
-                partition['obj'].pointsY_offset = pointY_offset
-                partition['obj'].part = total_partitions
-                partitions.append(partition)
-                total_partitions = total_partitions + 1  
+            # partition = entry
+            # partition['obj'] = CloudObject(sb, bucket, key)
+            # partition['obj'].data_byte_range = None
+            # partition['obj'].chunk_size = chunk_size
+            # partition['obj'].part = total_partitions
+            # partitions.append(partition)
+            # total_partitions = 1
+    
+        
+                # partition = entry.copy()
+                # partition['obj'] = CloudObject(sb, bucket, key)
+                # partition['obj'].limit_X_values = limX_vals
+                # partition['obj'].addupp_X_val = addupp_X_inf
+                # partition['obj'].addlow_X_val = addlow_X_inf
+                # partition['obj'].limit_Y_values = limY_vals
+                # partition['obj'].addupp_Y_val = addupp_Y_inf
+                # partition['obj'].addlow_Y_val = addlow_Y_inf
+                # partition['obj'].pointsX_offset = pointX_offset
+                # partition['obj'].pointsY_offset = pointY_offset
+                # partition['obj'].part = total_partitions
+                # partitions.append(partition)
+                # total_partitions = total_partitions + 1  
             
             print("****************************************************************************")
         parts_per_object.append(total_partitions)
