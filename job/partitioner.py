@@ -329,16 +329,6 @@ def _split_objects_from_keys(map_func_args_list, keys_dict, rows, cols, partitio
                     partition['obj'].part = total_partitions
                     partitions.append(partition)
                     total_partitions = total_partitions + 1  
-
-                # brange = (size, size+chunk_size+CHUNK_THRESHOLD)
-                # size += chunk_size
-                # partition = entry.copy()
-                # partition['obj'] = CloudObject(sb, bucket, key)
-                # partition['obj'].data_byte_range = brange
-                # partition['obj'].chunk_size = chunk_size
-                # partition['obj'].part = total_partitions
-                # partitions.append(partition)
-                # total_partitions = total_partitions + 1
         else:
             
             partition = entry.copy()
@@ -355,30 +345,7 @@ def _split_objects_from_keys(map_func_args_list, keys_dict, rows, cols, partitio
             partition['obj'].part = total_partitions
             partitions.append(partition)
             total_partitions = total_partitions + 1  
-
-
-            # partition = entry
-            # partition['obj'] = CloudObject(sb, bucket, key)
-            # partition['obj'].data_byte_range = None
-            # partition['obj'].chunk_size = chunk_size
-            # partition['obj'].part = total_partitions
-            # partitions.append(partition)
-            # total_partitions = 1
-    
-        
-                # partition = entry.copy()
-                # partition['obj'] = CloudObject(sb, bucket, key)
-                # partition['obj'].limit_X_values = limX_vals
-                # partition['obj'].addupp_X_val = addupp_X_inf
-                # partition['obj'].addlow_X_val = addlow_X_inf
-                # partition['obj'].limit_Y_values = limY_vals
-                # partition['obj'].addupp_Y_val = addupp_Y_inf
-                # partition['obj'].addlow_Y_val = addlow_Y_inf
-                # partition['obj'].pointsX_offset = pointX_offset
-                # partition['obj'].pointsY_offset = pointY_offset
-                # partition['obj'].part = total_partitions
-                # partitions.append(partition)
-                # total_partitions = total_partitions + 1  
+            
             
             print("****************************************************************************")
         parts_per_object.append(total_partitions)

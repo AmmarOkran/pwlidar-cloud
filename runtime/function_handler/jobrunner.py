@@ -216,6 +216,7 @@ class JobRunner:
             obj.storage_backend
             storage_handler = Storage(self.pywren_config, obj.storage_backend).get_storage_handler()
             logger.info('Getting dataset from {}://{}/{}'.format(obj.storage_backend, obj.bucket, obj.key))
+            logger.info("ob.limit_X_values {}".format(obj.limit_X_values))#####
             if obj.data_byte_range is not None:
                 extra_get_args['Range'] = 'bytes={}-{}'.format(*obj.data_byte_range)
                 logger.info('Chunk: {} - Range: {}'.format(obj.part, extra_get_args['Range']))
@@ -238,6 +239,7 @@ class JobRunner:
             self._save_modules(loaded_func_all['module_data'])
             function = self._unpickle_function(loaded_func_all['func'])
             data = self._load_data()
+            # logger.info("data is {}".format(data))
 
             if is_object_processing_function(function):
                 self._create_data_stream(data)
