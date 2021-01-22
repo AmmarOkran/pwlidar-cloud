@@ -235,7 +235,7 @@ def _split_objects_from_keys(map_func_args_list, keys_dict, rows, cols, partitio
         logger.info("Min X is {}, and Min Y is {}".format(min_X, min_Y))
     
         # Tiling operation
-        logger.info("start tiling ...")
+        # logger.info("start tiling ...")
         mn_X = min_X
         mn_Y = min_Y
         total_partitions = 0

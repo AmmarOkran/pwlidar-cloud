@@ -37,7 +37,7 @@ if __name__ == "__main__":
     fname = "file_name.las"
     bukname = "bucket_name"
     iterdata = 'cos://' + bukname + '/' + fname
-    pw = pywren.ibm_cf_executor()
+    pw = pywren.ibm_cf_executor(runtime = "ammarokran/pwlidar-cloud:1.0.0")
     pw.lidar_map(my_map_function, iterdata, rows = 2) 
     print(pw.get_result())
 ```
