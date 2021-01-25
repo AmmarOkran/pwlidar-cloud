@@ -3,7 +3,7 @@ import sys
 from pwlidar_cloud.utils import version_str
 
 RUNTIME_DEFAULT_35 = 'ibmfunctions/pywren:3.5'
-RUNTIME_DEFAULT_36 = 'ibmfunctions/action-python-v3.6'
+RUNTIME_DEFAULT_36 = 'ammarokran/pwlidar-cloud:1.0.0' # 'ibmfunctions/action-python-v3.6'
 RUNTIME_DEFAULT_37 = 'ibmfunctions/action-python-v3.7:1.6.0'
 
 RUNTIME_TIMEOUT_DEFAULT = 600  # Default: 600 seconds => 10 minutes

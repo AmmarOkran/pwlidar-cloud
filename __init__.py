@@ -6,10 +6,9 @@ from pwlidar_cloud.version import __version__
 name = "pwlidar_cloud"
 
 
-def ibm_cf_executor(config=None, runtime=None, runtime_memory=None, 
-                    workers=None, region=None, storage_backend=None,
-                    storage_backend_region=None, rabbitmq_monitor=None,
-                    remote_invoker=None, log_level=None):
+def ibm_cf_executor(config=None, runtime=None, runtime_memory=None, workers=None, 
+                    region=None, storage_backend=None, storage_backend_region=None, 
+                    rabbitmq_monitor=None, remote_invoker=None, log_level=None):
     """
     Function executor for IBM Cloud Functions
     """
