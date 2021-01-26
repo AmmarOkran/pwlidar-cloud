@@ -2,8 +2,10 @@
 # import ibm_botocore
 # from ibm_botocore.client import Config
 import os
+import laspy
 import struct
 import logging
+import numpy as np
 from pwlidar_cloud import utils
 from pwlidar_cloud.storage.utils import CloudObject, CloudObjectUrl
 
@@ -121,34 +123,34 @@ def prep_partition(entry, part_info, keys_dict, rows, cols, partition_type):
 
                 # The limits of the Y-axis values
                 limY_vals = (tilY_st, round((tilY_st + pointY_offset), 2))
-                addupp_Y_inf = (round((tilY_st + pointY_offset), 2), round((tilY_st + pointY_offset + part_info['delta']), 2))
+                addupp_Y_inf = (round((tilY_st + pointY_offset), 2), round((tilY_st + pointY_offset + part_info['delta']), 2)) if not(round((tilY_st + pointY_offset), 2) > max_Y) and y < (cols - 1) else (0, 0)
                 addlow_Y_inf = (0, 0)
                 logger.info("limitation of Y values for tile {}, {} is {}".format(x, y, limY_vals))
         
             elif (tilX_st == mn_X and tilY_st != mn_Y):
                 # The limits of the X-axis values
                 limX_vals = (tilX_st, round((tilX_st + pointX_offset), 2)) if not(round((tilX_st + pointX_offset), 2) > max_X) and x < (rows - 1) else (tilX_st, max_X)
-                addupp_X_inf = (round((tilX_st + pointX_offset), 2), round((tilX_st + pointX_offset + part_info['delta']), 2))
+                addupp_X_inf = (round((tilX_st + pointX_offset), 2), round((tilX_st + pointX_offset + part_info['delta']), 2)) if not(round((tilX_st + pointX_offset), 2) > max_X) and x < (rows - 1) else (0, 0)
                 addlow_X_inf = (0, 0)
                 logger.info("limitation of X values for tile {}, {} is {}".format(x, y, limX_vals))
 
                 # The limits of the Y-axis values
                 limY_vals = (tilY_st, round((tilY_st + pointY_offset), 2)) if not(round((tilY_st + pointY_offset), 2) > max_Y) and y < (cols - 1) else (tilY_st, max_Y)
-                addupp_Y_inf = (round((tilY_st + pointY_offset), 2), round((tilY_st + pointY_offset + part_info.delta), 2)) if not(round((tilY_st + pointY_offset), 2) > max_Y) and y < (cols - 1) else (0, 0)
-                addlow_Y_inf = (tilY_st, round((tilY_st - part_info.delta), 2))
+                addupp_Y_inf = (round((tilY_st + pointY_offset), 2), round((tilY_st + pointY_offset + part_info['delta']), 2)) if not(round((tilY_st + pointY_offset), 2) > max_Y) and y < (cols - 1) else (0, 0)
+                addlow_Y_inf = (tilY_st, round((tilY_st - part_info['delta']), 2))
                 logger.info("limitation of Y values for tile {}, {} is {}".format(x, y, limY_vals))
         
             elif (tilX_st != mn_X and tilY_st != mn_Y):
                 # The limits of the X-axis values
                 limX_vals = (tilX_st, round((tilX_st + pointX_offset), 2)) if not(round((tilX_st + pointX_offset), 2) > max_X) and x < (rows - 1) else (tilX_st, max_X)
-                addupp_X_inf = (round((tilX_st + pointX_offset), 2), round((tilX_st + pointX_offset + part_info.delta), 2)) if not(round((tilX_st + pointX_offset), 2) > max_X) and x < (rows - 1) else (0, 0)
-                addlow_X_inf = (tilX_st, round((tilX_st - part_info.delta), 2))
+                addupp_X_inf = (round((tilX_st + pointX_offset), 2), round((tilX_st + pointX_offset + part_info['delta']), 2)) if not(round((tilX_st + pointX_offset), 2) > max_X) and x < (rows - 1) else (0, 0)
+                addlow_X_inf = (tilX_st, round((tilX_st - part_info['delta']), 2))
                 logger.info("limitation of X values for tile {}, {} is {}".format(x, y, limX_vals))
 
                 # The limits of the Y-axis values
                 limY_vals = (tilY_st, round((tilY_st + pointY_offset), 2)) if not(round((tilY_st + pointY_offset), 2) > max_Y) and y < (cols - 1)else (tilY_st, max_Y)
-                addupp_Y_inf = (round((tilY_st + pointY_offset), 2), round((tilY_st + pointY_offset + part_info.delta), 2)) if not(round((tilY_st + pointY_offset), 2) > max_Y) and y < (cols - 1) else (0, 0)
-                addlow_Y_inf = (tilY_st, round((tilY_st - part_info.delta), 2))
+                addupp_Y_inf = (round((tilY_st + pointY_offset), 2), round((tilY_st + pointY_offset + part_info['delta']), 2)) if not(round((tilY_st + pointY_offset), 2) > max_Y) and y < (cols - 1) else (0, 0)
+                addlow_Y_inf = (tilY_st, round((tilY_st - part_info['delta']), 2))
                 logger.info("limitation of Y values for tile {}, {} is {}".format(x, y, limY_vals))
                 
             partition = entry.copy()
@@ -167,4 +169,148 @@ def prep_partition(entry, part_info, keys_dict, rows, cols, partition_type):
             total_partitions = total_partitions + 1  
     
     return partitions, total_partitions
+
+
+def file_part(whole_file, obj):
+
+    bord_meta = dict()
+    bord_meta['st_X'] = obj.limit_X_values[0]
+    bord_meta['end_X'] = obj.limit_X_values[1]
+    bord_meta['st_X_addlowinfo'] = obj.addlow_X_val[0]
+    bord_meta['end_X_addlowinfo'] = obj.addlow_X_val[1]
+    bord_meta['st_X_addupinfo'] = obj.addupp_X_val[0]
+    bord_meta['end_X_addupinfo'] = obj.addupp_X_val[1]
+
+    bord_meta['st_Y'] = obj.limit_Y_values[0]
+    bord_meta['end_Y'] = obj.limit_Y_values[1]
+    bord_meta['st_Y_addlowinfo'] = obj.addlow_Y_val[0]
+    bord_meta['end_Y_addlowinfo'] = obj.addlow_Y_val[1]
+    bord_meta['st_Y_addupinfo'] = obj.addupp_Y_val[0]
+    bord_meta['end_Y_addupinfo'] = obj.addupp_Y_val[1]
+
+
+    with open(obj.key, 'wb') as f:
+        f.write(whole_file.read())
+    
+    inFile = laspy.file.File(obj.key, mode="r")
+
+    coords = np.vstack((inFile.x, inFile.y, inFile.z)).transpose()
+
+    # f = {'st_X': 349000.13, 
+    #      'end_X': 349500.06, 
+    #      'st_X_addlowinfo': 0, 
+    #      'end_X_addlowinfo': 0, 
+    #      'st_X_addupinfo': 349500.06, 
+    #      'end_X_addupinfo': 349500.26, 
+    #      'st_Y': 4562000.04, 
+    #      'end_Y': 4563731.93, 
+    #      'st_Y_addlowinfo': 0, 
+    #      'end_Y_addlowinfo': 0, 
+    #      'st_Y_addupinfo': 0, 
+    #      'end_Y_addupinfo': 0
+    #      }
+
+    if (bord_meta['st_X_addlowinfo'] and bord_meta['st_Y_addlowinfo']) and (bord_meta['st_X_addupinfo'] and bord_meta['st_Y_addupinfo']):
+        # logger.info('num: {}'.format(1))
+        coords = coords[(coords[:,0] >= bord_meta['st_X_addlowinfo']) & (coords[:,0] <= bord_meta['end_X_addupinfo']) & 
+                        (coords[:,1] >= bord_meta['st_Y_addlowinfo']) & (coords[:,1] <= bord_meta['end_Y_addupinfo'])]
+    
+    elif (bord_meta['st_X_addlowinfo'] and bord_meta['st_Y_addlowinfo']) and (bord_meta['st_X_addupinfo'] and not bord_meta['st_Y_addupinfo']):
+        # logger.info('num: {}'.format(2))
+        coords = coords[(coords[:,0] >= bord_meta['st_X_addlowinfo']) & (coords[:,0] <= bord_meta['end_X_addupinfo']) & 
+                        (coords[:,1] >= bord_meta['st_Y_addlowinfo']) & (coords[:,1] < bord_meta['end_Y'])]
+
+    elif (bord_meta['st_X_addlowinfo'] and bord_meta['st_Y_addlowinfo']) and (not bord_meta['st_X_addupinfo'] and bord_meta['st_Y_addupinfo']):
+        # logger.info('num: {}'.format(3))
+        coords = coords[(coords[:,0] >= bord_meta['st_X_addlowinfo']) & (coords[:,0] < bord_meta['end_X']) & 
+                        (coords[:,1] >= bord_meta['st_Y_addlowinfo']) & (coords[:,1] <= bord_meta['end_Y_addupinfo'])]
+    
+    elif (bord_meta['st_X_addlowinfo'] and bord_meta['st_Y_addlowinfo']) and not(bord_meta['st_X_addupinfo'] and bord_meta['st_Y_addupinfo']):
+        # logger.info('num: {}'.format(4))
+        coords = coords[(coords[:,0] >= bord_meta['st_X_addlowinfo']) & (coords[:,0] < bord_meta['end_X']) & 
+                        (coords[:,1] >= bord_meta['st_Y_addlowinfo']) & (coords[:,1] < bord_meta['end_Y'])]
+    
+    elif (bord_meta['st_X_addlowinfo'] and not bord_meta['st_Y_addlowinfo']) and (bord_meta['st_X_addupinfo'] and bord_meta['st_Y_addupinfo']):
+        # logger.info('num: {}'.format(5))
+        coords = coords[(coords[:,0] >= bord_meta['st_X_addlowinfo']) & (coords[:,0] <= bord_meta['end_X_addupinfo']) & 
+                        (coords[:,1] >= bord_meta['st_Y']) & (coords[:,1] <= bord_meta['end_Y_addupinfo'])]
+    
+    elif (bord_meta['st_X_addlowinfo'] and not bord_meta['st_Y_addlowinfo']) and (bord_meta['st_X_addupinfo'] and not bord_meta['st_Y_addupinfo']):
+        # logger.info('num: {}'.format(6))
+        coords = coords[(coords[:,0] >= bord_meta['st_X_addlowinfo']) & (coords[:,0] <= bord_meta['end_X_addupinfo']) & 
+                        (coords[:,1] >= bord_meta['st_Y']) & (coords[:,1] < bord_meta['end_Y'])]
+    
+    
+    elif (bord_meta['st_X_addlowinfo'] and not bord_meta['st_Y_addlowinfo']) and (not bord_meta['st_X_addupinfo'] and bord_meta['st_Y_addupinfo']):
+        # logger.info('num: {}'.format(7))
+        coords = coords[(coords[:,0] >= bord_meta['st_X_addlowinfo']) & (coords[:,0] <= bord_meta['end_X']) & 
+                        (coords[:,1] >= bord_meta['st_Y']) & (coords[:,1] <= bord_meta['end_Y_addupinfo'])]
+    
+    elif (bord_meta['st_X_addlowinfo'] and not bord_meta['st_Y_addlowinfo']) and (not bord_meta['st_X_addupinfo'] and not bord_meta['st_Y_addupinfo']):
+        # logger.info('num: {}'.format(8))
+        coords = coords[(coords[:,0] >= bord_meta['st_X_addlowinfo']) & (coords[:,0] < bord_meta['end_X']) & 
+                        (coords[:,1] >= bord_meta['st_Y']) & (coords[:,1] < bord_meta['end_Y'])]
+    
+    elif (not bord_meta['st_X_addlowinfo'] and bord_meta['st_Y_addlowinfo']) and (bord_meta['st_X_addupinfo'] and bord_meta['st_Y_addupinfo']):
+        # logger.info('num: {}'.format(9))
+        coords = coords[(coords[:,0] >= bord_meta['st_X']) & (coords[:,0] <= bord_meta['end_X_addupinfo']) & 
+                        (coords[:,1] >= bord_meta['st_Y_addlowinfo']) & (coords[:,1] <= bord_meta['end_Y_addupinfo'])]
+    
+    elif (not bord_meta['st_X_addlowinfo'] and bord_meta['st_Y_addlowinfo']) and (bord_meta['st_X_addupinfo'] and not bord_meta['st_Y_addupinfo']):
+        # logger.info('num: {}'.format(10))
+        coords = coords[(coords[:,0] >= bord_meta['st_X']) & (coords[:,0] <= bord_meta['end_X_addupinfo']) & 
+                        (coords[:,1] >= bord_meta['st_Y_addlowinfo']) & (coords[:,1] < bord_meta['end_Y'])]
+    
+    elif (not bord_meta['st_X_addlowinfo'] and bord_meta['st_Y_addlowinfo']) and (not bord_meta['st_X_addupinfo'] and bord_meta['st_Y_addupinfo']):
+        # logger.info('num: {}'.format(11))
+        coords = coords[(coords[:,0] >= bord_meta['st_X']) & (coords[:,0] < bord_meta['end_X']) & 
+                        (coords[:,1] >= bord_meta['st_Y_addlowinfo']) & (coords[:,1] <= bord_meta['end_Y_addupinfo'])]
+    
+    elif (not bord_meta['st_X_addlowinfo'] and bord_meta['st_Y_addlowinfo']) and (not bord_meta['st_X_addupinfo'] and not bord_meta['st_Y_addupinfo']):
+        # logger.info('num: {}'.format(12))
+        coords = coords[(coords[:,0] >= bord_meta['st_X']) & (coords[:,0] < bord_meta['end_X']) & 
+                        (coords[:,1] >= bord_meta['st_Y_addlowinfo']) & (coords[:,1] < bord_meta['end_Y'])]
+    
+    elif (not bord_meta['st_X_addlowinfo'] and not bord_meta['st_Y_addlowinfo']) and (bord_meta['st_X_addupinfo'] and bord_meta['st_Y_addupinfo']):
+        # logger.info('num: {}'.format(13))
+        coords = coords[(coords[:,0] >= bord_meta['st_X']) & (coords[:,0] <= bord_meta['end_X_addupinfo']) & 
+                        (coords[:,1] >= bord_meta['st_Y']) & (coords[:,1] <= bord_meta['end_Y_addupinfo'])]
+    
+    elif (not bord_meta['st_X_addlowinfo'] and not bord_meta['st_Y_addlowinfo']) and (bord_meta['st_X_addupinfo'] and not bord_meta['st_Y_addupinfo']):
+        # logger.info('num: {}'.format(14))
+        coords = coords[(coords[:,0] >= bord_meta['st_X']) & (coords[:,0] <= bord_meta['end_X_addupinfo']) & 
+                        (coords[:,1] >= bord_meta['st_Y']) & (coords[:,1] < bord_meta['end_Y'])]
+    
+    elif (not bord_meta['st_X_addlowinfo'] and not bord_meta['st_Y_addlowinfo']) and (not bord_meta['st_X_addupinfo'] and bord_meta['st_Y_addupinfo']):
+        # logger.info('num: {}'.format(15))
+        coords = coords[(coords[:,0] >= bord_meta['st_X']) & (coords[:,0] < bord_meta['end_X']) & 
+                        (coords[:,1] >= bord_meta['st_Y']) & (coords[:,1] <= bord_meta['end_Y_addupinfo'])]
+    
+    else:
+        # logger.info('num: {}'.format(16))
+        coords = coords[(coords[:,0] >= bord_meta['st_X']) & (coords[:,0] < bord_meta['end_X']) & 
+                        (coords[:,1] >= bord_meta['st_Y']) & (coords[:,1] < bord_meta['end_Y'])]
+    
+
+    try:
+        c = np.in1d(inFile.x, coords[:,0]) & np.in1d(inFile.y, coords[:,1])
+        points_kept = inFile.points[c]
+
+        os.remove(obj.key)
+        # Write points into las File
+        f_name = obj.key
+        f_name = f_name.split(".")[0] + "-" + str(obj.part) + ".las"
+        outFile1 = laspy.file.File(f_name, mode = "w",header = inFile.header)
+        outFile1.points = points_kept
+        outFile1.close()
+        dir_file = os.getcwd() + "/" + f_name
+        # logger.info("dir_file {}".format(dir_file))
+    except IndexError as error:
+        # Output expected IndexErrors.
+        logger.error('Output expected IndexErrors: {}', str(error))
+        points_kept = None
+        return coords
+
+    return points_kept 
+
                        

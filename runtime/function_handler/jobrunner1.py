@@ -33,7 +33,6 @@ from pwlidar_cloud.libs.tblib import pickling_support
 from pwlidar_cloud.utils import sizeof_fmt, b64str_to_bytes, is_object_processing_function
 from pwlidar_cloud.utils import get_current_memory_usage, WrappedStreamingBodyPartition
 from pwlidar_cloud.config import extract_storage_config, cloud_logging_config
-from pwlidar_cloud.job.lasdata_parse import file_part
 
 pickling_support.install()
 logger = logging.getLogger('JobRunner')
@@ -201,6 +200,7 @@ class JobRunner:
         Creates the data stream in case of object processing
         """
         extra_get_args = {}
+
         if 'url' in data:
             url = data['url']
             logger.info('Getting dataset from {}'.format(url.path))
@@ -216,8 +216,7 @@ class JobRunner:
             obj.storage_backend
             storage_handler = Storage(self.pywren_config, obj.storage_backend).get_storage_handler()
             logger.info('Getting dataset from {}://{}/{}'.format(obj.storage_backend, obj.bucket, obj.key))
-            # logger.info("ob.limit_X_values {}".format(obj.limit_X_values))#####
-
+            logger.info("ob.limit_X_values {}".format(obj.limit_X_values))#####
             if obj.data_byte_range is not None:
                 extra_get_args['Range'] = 'bytes={}-{}'.format(*obj.data_byte_range)
                 logger.info('Chunk: {} - Range: {}'.format(obj.part, extra_get_args['Range']))
@@ -225,7 +224,6 @@ class JobRunner:
                 obj.data_stream = WrappedStreamingBodyPartition(sb, obj.chunk_size, obj.data_byte_range)
             else:
                 obj.data_stream = storage_handler.get_object(obj.bucket, obj.key, stream=True)
-                obj.data_stream = file_part(obj.data_stream, obj)
 
     def run(self):
         """
@@ -241,6 +239,7 @@ class JobRunner:
             self._save_modules(loaded_func_all['module_data'])
             function = self._unpickle_function(loaded_func_all['func'])
             data = self._load_data()
+            # logger.info("data is {}".format(data))
 
             if is_object_processing_function(function):
                 self._create_data_stream(data)

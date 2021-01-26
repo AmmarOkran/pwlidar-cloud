@@ -20,6 +20,25 @@ The primary object in PyWren is the executor. First of all we have to import Pwl
 import Pwlidar_cloud as pywren
 pw = pywren.ibm_cf_executor()
 ```
+As a simple example, you can copy-paste the next code and run the `my_call_async_function()` function on IBM Cloud Functions:
+```python
+import pwlidar_cloud as pywren
+
+def my_map_function(obj):
+    print('Bucket: {}'.format(obj.bucket))
+    print('Key: {}'.format(obj.key))
+
+
+
+if __name__ == "__main__":
+    fname = "file_name.las"
+    bukname = "bucket_name"
+    data = 'cos://' + bukname + '/' + fname
+    pw = pywren.ibm_cf_executor(runtime = "ammarokran/pwlidar-cloud:1.0.0")
+    pw.lidar_call_async(my_map_function, data) 
+    print(pw.get_result())
+```
+
 
 As a simple example, you can copy-paste the next code and run the `my_map_function()` function on IBM Cloud Functions:
 
