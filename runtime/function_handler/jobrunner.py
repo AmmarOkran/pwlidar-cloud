@@ -223,6 +223,8 @@ class JobRunner:
                 logger.info('Chunk: {} - Range: {}'.format(obj.part, extra_get_args['Range']))
                 sb = storage_handler.get_object(obj.bucket, obj.key, stream=True, extra_get_args=extra_get_args)
                 obj.data_stream = WrappedStreamingBodyPartition(sb, obj.chunk_size, obj.data_byte_range)
+            elif obj.data_byte_range is None and obj.limit_X_values is None:
+                obj.data_stream = storage_handler.get_object(obj.bucket, obj.key, stream=True)
             else:
                 obj.data_stream = storage_handler.get_object(obj.bucket, obj.key, stream=True)
                 obj.data_stream = file_part(obj.data_stream, obj)
