@@ -227,7 +227,7 @@ def _split_objects_from_keys(map_func_args_list, keys_dict, rows, cols, partitio
         total_partitions = 0
 
         # Delta for both (x and y)
-        part_info['delta'] = 77.0 # variancex_y(inFile)
+        part_info['delta'] = 0.5 # variancex_y(inFile)
         logger.info('delta = {}'.format(part_info['delta']))
     
         if num_tiles is not None:

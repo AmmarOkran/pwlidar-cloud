@@ -300,17 +300,20 @@ def file_part(whole_file, obj):
         # Write points into las File
         f_name = obj.key
         f_name = f_name.split(".")[0] + "-" + str(obj.part) + ".las"
+
         outFile1 = laspy.file.File(f_name, mode = "w",header = inFile.header)
         outFile1.points = points_kept
         outFile1.close()
         dir_file = os.getcwd() + "/" + f_name
+
+        
+
         # logger.info("dir_file {}".format(dir_file))
     except IndexError as error:
         # Output expected IndexErrors.
         logger.error('Output expected IndexErrors: {}', str(error))
         points_kept = None
-        return coords
+        return inFile.header, points_kept
 
-    return points_kept 
-
+    return inFile.header, points_kept
                        

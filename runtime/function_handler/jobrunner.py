@@ -227,7 +227,7 @@ class JobRunner:
                 obj.data_stream = storage_handler.get_object(obj.bucket, obj.key, stream=True)
             else:
                 obj.data_stream = storage_handler.get_object(obj.bucket, obj.key, stream=True)
-                obj.data_stream = file_part(obj.data_stream, obj)
+                obj.header, obj.data_stream = file_part(obj.data_stream, obj)
 
     def run(self):
         """
