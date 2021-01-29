@@ -51,8 +51,57 @@ def create_map_job(config, internal_storage, executor_id, job_id, map_function, 
 
     return job_description
 
-def create_reduce_job():
-    print("create_reduce_job")
+def create_reduce_job(config, internal_storage, executor_id, reduce_job_id, reduce_function,
+                      map_job, map_futures, runtime_meta, reducer_one_per_object=False,
+                      runtime_memory=None, extra_env=None, include_modules=[], exclude_modules=[]):
+    """
+    Wrapper to create a reduce job. Apply a function across all map futures.
+    """
+    iterdata = [[map_futures, ]]
+
+    if 'parts_per_object' in map_job and reducer_one_per_object:
+        prev_total_partitons = 0
+        iterdata = []
+        for total_partitions in map_job['parts_per_object']:
+            iterdata.append([map_futures[prev_total_partitons:prev_total_partitons+total_partitions]])
+            prev_total_partitons = prev_total_partitons + total_partitions
+
+    def reduce_function_wrapper(fut_list, internal_storage, ibm_cos):
+        logger.info('Waiting for results')
+        if 'SHOW_MEMORY_USAGE' in os.environ:
+            show_memory = eval(os.environ['SHOW_MEMORY_USAGE'])
+        else:
+            show_memory = False
+        # Wait for all results
+        wait_storage(fut_list, internal_storage, download_results=True)
+        results = [f.result() for f in fut_list if f.done and not f.futures]
+        fut_list.clear()
+        reduce_func_args = {'results': results}
+
+        if show_memory:
+            logger.debug("Memory usage after getting the results: {}".format(utils.get_current_memory_usage()))
+
+        # Run reduce function
+        func_sig = inspect.signature(reduce_function)
+        if 'ibm_cos' in func_sig.parameters:
+            reduce_func_args['ibm_cos'] = ibm_cos
+        if 'internal_storage' in func_sig.parameters:
+            reduce_func_args['internal_storage'] = internal_storage
+
+        return reduce_function(**reduce_func_args)
+
+    iterdata = utils.verify_args(reduce_function_wrapper, iterdata, None)
+
+    return _create_job(config, internal_storage, executor_id,
+                       reduce_job_id, reduce_function_wrapper,
+                       iterdata, runtime_meta=runtime_meta,
+                       runtime_memory=runtime_memory,
+                       extra_env=extra_env,
+                       include_modules=include_modules,
+                       exclude_modules=exclude_modules,
+                       original_func_name=reduce_function.__name__)
+
+
 
 
 def _agg_data(data_strs):

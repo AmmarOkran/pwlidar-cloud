@@ -223,11 +223,11 @@ class JobRunner:
                 logger.info('Chunk: {} - Range: {}'.format(obj.part, extra_get_args['Range']))
                 sb = storage_handler.get_object(obj.bucket, obj.key, stream=True, extra_get_args=extra_get_args)
                 obj.data_stream = WrappedStreamingBodyPartition(sb, obj.chunk_size, obj.data_byte_range)
-            elif obj.data_byte_range is None and obj.limit_X_values is None:
+            elif obj.data_byte_range is None and (obj.limit_X_values is None or obj.limit_Y_values is None):
                 obj.data_stream = storage_handler.get_object(obj.bucket, obj.key, stream=True)
             else:
                 obj.data_stream = storage_handler.get_object(obj.bucket, obj.key, stream=True)
-                obj.header, obj.data_stream = file_part(obj.data_stream, obj)
+                obj.data_stream = file_part(obj.data_stream, obj)#obj.bord_meta,
 
     def run(self):
         """
@@ -243,6 +243,7 @@ class JobRunner:
             self._save_modules(loaded_func_all['module_data'])
             function = self._unpickle_function(loaded_func_all['func'])
             data = self._load_data()
+            logger.info("data_obj {}".format(data))
 
             if is_object_processing_function(function):
                 self._create_data_stream(data)

@@ -257,7 +257,7 @@ def get_current_memory_usage():
     #cmd = "ps -eo pss | tail -n +2 | awk '{ SUM += $1} END { print SUM/1024}'"
     #memorymbytes = subprocess.check_output(cmd, shell=True).decode("ascii").strip()
 
-    cmd = "python pywren_ibm_cloud/libs/ps_mem/ps_mem.py --total"
+    cmd = "python pwlidar_cloud/libs/ps_mem/ps_mem.py --total"
     process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
     memorybytes = int(process.stdout.read())
 

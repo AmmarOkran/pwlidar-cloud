@@ -195,7 +195,6 @@ def file_part(whole_file, obj):
     inFile = laspy.file.File(obj.key, mode="r")
 
     coords = np.vstack((inFile.x, inFile.y, inFile.z)).transpose() 
-    logger.info("bord_meta {}".format(bord_meta))
     # f = {'st_X': 349000.13, 
     #      'end_X': 349500.06, 
     #      'st_X_addlowinfo': 0, 
@@ -291,9 +290,9 @@ def file_part(whole_file, obj):
         coords = coords[(coords[:,0] >= bord_meta['st_X']) & (coords[:,0] <= bord_meta['end_X']) & 
                         (coords[:,1] >= bord_meta['st_Y']) & (coords[:,1] <= bord_meta['end_Y'])]
     
-    logger.info("sahpe {}".format(coords.shape))
+
     try:
-        c = np.in1d(inFile.x, coords[:,0]) & np.in1d(inFile.y, coords[:,1]) & np.in1d(inFile.z, coords[:,2])
+        c = np.in1d(inFile.x, coords[:,0]) & np.in1d(inFile.y, coords[:,1]) & np.in1d(inFile.y, coords[:,2])
         points_kept = inFile.points[c]
         # xmax = max(points_kept[:,0])
         # ymax = max(points_kept[:,1])
@@ -302,7 +301,7 @@ def file_part(whole_file, obj):
         # xmin = min(points_kept[:,0])
         # ymin = min(points_kept[:,1])
         # zmin = min(points_kept[:,2])
-        logger.info("val {}".format(points_kept[0]))
+        logger.info("sahpe {}".format(points_kept.shape))
         os.remove(obj.key)
         # Write points into las File
         f_name = obj.key

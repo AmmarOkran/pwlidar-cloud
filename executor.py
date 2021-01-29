@@ -139,51 +139,132 @@ class FunctionExecutor:
     def lidar_map(self, map_function, map_iterdata, extra_params=None, extra_env=None, runtime_memory=None,
                   partition_type = None, rows=1, cols=1, timeout=EXECUTION_TIMEOUT, invoke_pool_threads=500,
                   include_modules=[], exclude_modules=[]):
-            """
-            :param map_function: the function to map over the data
-            :param map_iterdata: An iterable of input data
-            :param extra_params: Additional parameters to pass to the function activation. Default None.
-            :param extra_env: Additional environment variables for action environment. Default None.
-            :param runtime_memory: Memory to use to run the function. Default None (loaded from config).
-            :param chunk_size: the size of the data chunks to split each object. 'None' for processing
-                            the whole file in one function activation.
-            :param chunk_n: Number of chunks to split each object. 'None' for processing the whole
-                            file in one function activation.
-            :param remote_invocation: Enable or disable remote_invocation mechanism. Default 'False'
-            :param timeout: Time that the functions have to complete their execution before raising a timeout.
-            :param invoke_pool_threads: Number of threads to use to invoke.
-            :param include_modules: Explicitly pickle these dependencies.
-            :param exclude_modules: Explicitly keep these modules from pickled dependencies.
+        """
+        :param map_function: the function to map over the data
+        :param map_iterdata: An iterable of input data
+        :param extra_params: Additional parameters to pass to the function activation. Default None.
+        :param extra_env: Additional environment variables for action environment. Default None.
+        :param runtime_memory: Memory to use to run the function. Default None (loaded from config).
+        :param chunk_size: the size of the data chunks to split each object. 'None' for processing
+                        the whole file in one function activation.
+        :param chunk_n: Number of chunks to split each object. 'None' for processing the whole
+                        file in one function activation.
+        :param remote_invocation: Enable or disable remote_invocation mechanism. Default 'False'
+        :param timeout: Time that the functions have to complete their execution before raising a timeout.
+        :param invoke_pool_threads: Number of threads to use to invoke.
+        :param include_modules: Explicitly pickle these dependencies.
+        :param exclude_modules: Explicitly keep these modules from pickled dependencies.
 
-            :return: A list with size `len(iterdata)` of futures.
-            """
-            job_id = self._create_job_id('M')
+        :return: A list with size `len(iterdata)` of futures.
+        """
+        job_id = self._create_job_id('M')
 
-            runtime_meta = self.invoker.select_runtime(job_id, runtime_memory)
+        runtime_meta = self.invoker.select_runtime(job_id, runtime_memory)
 
-            job = create_map_job(self.config, self.internal_storage,
-                                 self.executor_id, job_id,
+        job = create_map_job(self.config, self.internal_storage,
+                                self.executor_id, job_id,
+                                map_function=map_function,
+                                iterdata=map_iterdata,
+                                runtime_meta=runtime_meta,
+                                runtime_memory=runtime_memory,
+                                partition_type = partition_type,
+                                extra_params=extra_params,
+                                extra_env=extra_env,
+                                obj_rows=rows,
+                                obj_cols=cols,
+                                invoke_pool_threads=invoke_pool_threads,
+                                include_modules=include_modules,
+                                exclude_modules=exclude_modules,
+                                execution_timeout=timeout)
+
+        futures = self.invoker.run(job)
+        self.futures.extend(futures)
+        self._state = FunctionExecutor.State.Running
+        if len(futures) == 1:
+            return futures[0]
+        return futures
+
+
+
+    def lidar_map_reduce(self, map_function, map_iterdata, reduce_function, extra_params=None, extra_env=None,
+                         map_runtime_memory=None, reduce_runtime_memory=None, chunk_size=None, chunk_n=None,
+                         timeout=EXECUTION_TIMEOUT, invoke_pool_threads=500, reducer_one_per_object=False,
+                         reducer_wait_local=False, include_modules=[], exclude_modules=[]):
+        """
+        Map the map_function over the data and apply the reduce_function across all futures.
+        This method is executed all within CF.
+
+        :param map_function: the function to map over the data
+        :param map_iterdata:  the function to reduce over the futures
+        :param reduce_function:  the function to reduce over the futures
+        :param extra_env: Additional environment variables for action environment. Default None.
+        :param extra_params: Additional parameters to pass to function activation. Default None.
+        :param map_runtime_memory: Memory to use to run the map function. Default None (loaded from config).
+        :param reduce_runtime_memory: Memory to use to run the reduce function. Default None (loaded from config).
+        :param chunk_size: the size of the data chunks to split each object. 'None' for processing
+                           the whole file in one function activation.
+        :param chunk_n: Number of chunks to split each object. 'None' for processing the whole
+                        file in one function activation.
+        :param remote_invocation: Enable or disable remote_invocation mechanism. Default 'False'
+        :param timeout: Time that the functions have to complete their execution before raising a timeout.
+        :param reducer_one_per_object: Set one reducer per object after running the partitioner
+        :param reducer_wait_local: Wait for results locally
+        :param invoke_pool_threads: Number of threads to use to invoke.
+        :param include_modules: Explicitly pickle these dependencies.
+        :param exclude_modules: Explicitly keep these modules from pickled dependencies.
+
+        :return: A list with size `len(map_iterdata)` of futures.
+        """
+        map_job_id = self._create_job_id('M')
+
+        runtime_meta = self.invoker.select_runtime(map_job_id, map_runtime_memory)
+
+        map_job = create_map_job(self.config, self.internal_storage,
+                                 self.executor_id, map_job_id,
                                  map_function=map_function,
                                  iterdata=map_iterdata,
                                  runtime_meta=runtime_meta,
-                                 runtime_memory=runtime_memory,
-                                 partition_type = partition_type,
+                                 runtime_memory=map_runtime_memory,
                                  extra_params=extra_params,
                                  extra_env=extra_env,
-                                 obj_rows=rows,
-                                 obj_cols=cols,
+                                 obj_chunk_size=chunk_size,
+                                 obj_chunk_number=chunk_n,
                                  invoke_pool_threads=invoke_pool_threads,
                                  include_modules=include_modules,
                                  exclude_modules=exclude_modules,
                                  execution_timeout=timeout)
 
-            futures = self.invoker.run(job)
-            self.futures.extend(futures)
-            self._state = FunctionExecutor.State.Running
-            if len(futures) == 1:
-                return futures[0]
-            return futures
-    
+        map_futures = self.invoker.run(map_job)
+        self.futures.extend(map_futures)
+
+        if reducer_wait_local:
+            self.wait(fs=map_futures)
+
+        reduce_job_id = map_job_id.replace('M', 'R')
+
+        runtime_meta = self.invoker.select_runtime(reduce_job_id, reduce_runtime_memory)
+
+        reduce_job = create_reduce_job(self.config, self.internal_storage,
+                                       self.executor_id, reduce_job_id,
+                                       reduce_function, map_job, map_futures,
+                                       runtime_meta=runtime_meta,
+                                       reducer_one_per_object=reducer_one_per_object,
+                                       runtime_memory=reduce_runtime_memory,
+                                       extra_env=extra_env,
+                                       include_modules=include_modules,
+                                       exclude_modules=exclude_modules)
+
+        reduce_futures = self.invoker.run(reduce_job)
+
+        self.futures.extend(reduce_futures)
+
+        for f in map_futures:
+            f.produce_output = False
+
+        self._state = FunctionExecutor.State.Running
+
+        return map_futures + reduce_futures
+
 
     def wait(self, fs=None, throw_except=True, return_when=ALL_COMPLETED, download_results=False,
              timeout=None, THREADPOOL_SIZE=128, WAIT_DUR_SEC=1):
